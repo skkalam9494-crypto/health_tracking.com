@@ -1,0 +1,75 @@
+<header>
+  <h1>Live Well - The Health Tracker</h1>
+  <div>
+    <button id="signInBtn">Sign In with Google</button>
+    <button id="signOutBtn">Sign Out</button>
+  </div>
+</header>
+
+<main>
+  <!-- Steps Tracker -->
+  <section id="steps">
+    <h2><i class="fas fa-shoe-prints"></i> Steps Tracker</h2>
+    <div class="progress-bar"><div class="progress" id="stepsProgress">0%</div></div>
+    <button id="addStepsBtn">+1000 Steps</button>
+    <button class="reset" id="resetStepsBtn">Reset</button>
+  </section>
+
+  <!-- Heartbeat Monitor -->
+  <section id="heartbeat">
+    <h2><i class="fas fa-heartbeat"></i> Heartbeat Monitor</h2>
+    <p><span id="heartbeatValue">--</span> BPM</p>
+    <button id="heartbeatBtn">Check Heartbeat</button>
+  </section>
+
+  <!-- Calories Tracker -->
+  <section id="calories">
+    <h2><i class="fas fa-fire"></i> Calories Tracker</h2>
+    <p>Calories: <span id="caloriesValue">0</span> / 2000</p>
+    <canvas id="caloriesChart" width="150" height="150"></canvas>
+    <button id="addCaloriesBtn">+200 Calories</button>
+    <button class="reset" id="resetCaloriesBtn">Reset</button>
+  </section>
+
+  <!-- Weight Management -->
+  <section id="weight">
+    <h2><i class="fas fa-weight"></i> Weight Management</h2>
+    <input type="number" id="weightInput" placeholder="Enter weight (kg)">
+    <button id="addWeightBtn">Add Weight</button>
+    <button class="reset" id="resetWeightBtn">Reset</button>
+    <ul id="weightHistory"></ul>
+  </section>
+
+  <!-- Diet Plan -->
+  <section id="diet">
+    <h2><i class="fas fa-apple-alt"></i> Diet Plan of the Day</h2>
+    <p id="dietPlan"></p>
+    <button id="tomorrowBtn">👀 Show Tomorrow's Plan</button>
+  </section>
+
+  <!-- Protein Recipes -->
+  <section id="recipes">
+    <h2><i class="fas fa-drumstick-bite"></i> Protein Recipe of the Day</h2>
+    <div class="recipe">
+      <img id="recipeImage" src="" alt="Recipe" style="width:100%; border-radius:10px;">
+      <h3 id="recipeTitle"></h3>
+      <p id="recipeDesc"></p>
+    </div>
+  </section>
+</main><!-- Recipe Modal -->
+<div id="recipeModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:1000;">
+  <div style="background:white; padding:20px; border-radius:12px; max-width:500px; width:90%; position:relative;">
+    <span id="closeModal" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:20px;">&times;</span>
+    <h2 id="modalTitle"></h2>
+    <img id="modalImage" src="" style="width:100%; border-radius:12px; margin:10px 0;">
+    <p id="modalInstructions"></p>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">

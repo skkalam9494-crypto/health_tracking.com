@@ -1,0 +1,115 @@
+// 🔹 Firebase Config
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// 🔹 Auth Buttons
+document.getElementById("signInBtn").onclick = ()=>{
+  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(res=>alert("Signed in as: "+res.user.displayName));
+};
+document.getElementById("signOutBtn").onclick = ()=> auth.signOut().then(()=>alert("Signed out"));
+
+// 🔹 User Data
+let steps=0, calories=0, weightHistory=[], currentUser=null;
+
+auth.onAuthStateChanged(user=>{
+  if(user){
+    currentUser=user;
+    const userRef=db.collection("users").doc(user.uid);
+    userRef.get().then(doc=>{
+      if(doc.exists){
+        steps=doc.data().steps||0;
+        calories=doc.data().calories||0;
+        weightHistory=doc.data().weightHistory||[];
+      }
+      renderAll();
+    });
+  } else currentUser=null;
+});
+
+// 🔹 Steps
+document.getElementById("addStepsBtn").onclick = ()=>{ steps+=1000; saveData("steps",steps); renderSteps(); };
+document.getElementById("resetStepsBtn").onclick = ()=>{ if(confirm("Reset steps?")){ steps=0; saveData("steps",steps); renderSteps(); } };
+function renderSteps(){ let pct=Math.min((steps/10000)*100,100); const p=document.getElementById("stepsProgress"); p.style.width=pct+"%"; p.innerText=Math.round(pct)+"%"; }
+
+// 🔹 Heartbeat
+document.getElementById("heartbeatBtn").onclick = ()=> document.getElementById("heartbeatValue").innerText = Math.floor(Math.random()*60 +60);
+
+// 🔹 Calories
+document.getElementById("addCaloriesBtn").onclick = ()=>{ calories+=200; saveData("calories",calories); renderCalories(); };
+document.getElementById("resetCaloriesBtn").onclick = ()=>{ if(confirm("Reset calories?")){ calories=0; saveData("calories",calories); renderCalories(); } };
+function renderCalories(){
+  document.getElementById("caloriesValue").innerText = calories;
+  let ctx = document.getElementById("caloriesChart").getContext("2d");
+  ctx.clearRect(0,0,150,150);
+  ctx.beginPath(); ctx.arc(75,75,60,0,2*Math.PI); ctx.strokeStyle="#ddd"; ctx.lineWidth=15; ctx.stroke();
+  let pct=Math.min(calories/2000,1);
+  ctx.beginPath(); ctx.arc(75,75,60,-0.5*Math.PI,(pct*2*Math.PI)-0.5*Math.PI); ctx.strokeStyle="#ff4500"; ctx.lineWidth=15; ctx.stroke();
+}
+
+// 🔹 Weight
+document.getElementById("addWeightBtn").onclick = ()=>{
+  let val=document.getElementById("weightInput").value;
+  if(val){ weightHistory.push(val); saveData("weightHistory",weightHistory); renderWeight(); document.getElementById("weightInput").value=""; }
+};
+document.getElementById("resetWeightBtn").onclick = ()=>{ if(confirm("Reset weight?")){ weightHistory=[]; saveData("weightHistory",weightHistory); renderWeight(); } };
+function renderWeight(){ const list=document.getElementById("weightHistory"); list.innerHTML=""; weightHistory.forEach(w=>{ let li=document.createElement("li"); li.innerText=w+" kg"; list.appendChild(li); }); }
+
+// 🔹 Save Data to Firebase
+function saveData(field,value){ if(currentUser) db.collection("users").doc(currentUser.uid).set({[field]:value},{merge:true}); }
+
+// 🔹 Daily Diet & Recipes
+const dietPlans=["🍎 Breakfast: Oats+Almonds | Lunch: Chicken+Rice | Dinner: Veg Soup",
+                 "🥗 Breakfast: Smoothie | Lunch: Fish+Salad | Dinner: Paneer+Roti",
+                 "🍞 Breakfast: Eggs+Toast | Lunch: Dal+BrownRice | Dinner: Chicken Salad"];
+const recipes=[{title:"Protein Smoothie",img:"https://www.eatingwell.com/thmb/V9tAeP9eZzSm3JzJbfiNwFzXZsw=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/banana-protein-smoothie-d251acddc1f74cf2a1e83c0f3a7c02e3.jpg",desc:"🥤 Milk+Banana+Peanut Butter+Whey"},
+               {title:"Egg Omelette",img:"https://www.eatingwell.com/thmb/gNqACXYz00o1oJzD-6dOyfVwJHg=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/spinach-omelet-healthy-breakfast-b1f6c3e2aef148f0b2159d51b41d08f4.jpg",desc:"🍳 Eggs+Spinach+Onion"},
+               {title:"Grilled Salmon",img:"https://www.eatingwell.com/thmb/0P9pM7F-FuBYVvMsyV6E03z6lP8=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/grilled-salmon-quinoa-salad-750x750-6f35ce7f85a548679506f91d3d9e196e.jpg",desc:"🐟 Salmon+Quinoa+Veggies"}];
+// Add full recipe instructions
+const recipeInstructions = [
+  "Protein Smoothie: Blend 1 cup milk, 1 banana, 1 tbsp peanut butter, 1 scoop whey protein until smooth. Serve chilled.",
+  "Egg Omelette: Beat 2 eggs, add chopped spinach & onion. Cook on medium heat until set. Serve warm.",
+  "Grilled Salmon: Season salmon with salt & pepper. Grill 4-5 mins per side. Serve with cooked quinoa and steamed veggies."
+];
+
+// Open modal when recipe image clicked
+document.getElementById("recipeImage").onclick = ()=>{
+  const today = new Date();
+  const index = today.getDate() % recipes.length;
+  document.getElementById("modalTitle").innerText = recipes[index].title;
+  document.getElementById("modalImage").src = recipes[index].img;
+  document.getElementById("modalInstructions").innerText = recipeInstructions[index];
+  document.getElementById("recipeModal").style.display = "flex";
+};
+
+// Close modal
+document.getElementById("closeModal").onclick = ()=>{
+  document.getElementById("recipeModal").style.display = "none";
+};
+function showDaily(){
+  let today=new Date(); let index=today.getDate()%dietPlans.length;
+  document.getElementById("dietPlan").innerText=dietPlans[index];
+  let r=recipes[index];
+  document.getElementById("recipeImage").src=r.img;
+  document.getElementById("recipeTitle").innerText=r.title;
+  document.getElementById("recipeDesc").innerText=r.desc;
+}
+document.getElementById("tomorrowBtn").onclick = ()=>{
+  let t=new Date(); t.setDate(t.getDate()+1); let index=t.getDate()%dietPlans.length;
+  document.getElementById("dietPlan").innerText=dietPlans[index]+" (Tomorrow)";
+  let r=recipes[index];
+  document.getElementById("recipeImage").src=r.img;
+  document.getElementById("recipeTitle").innerText=r.title+" (Tomorrow)";
+  document.getElementById("recipeDesc").innerText=r.desc;
+};
+
+// 🔹 Render all
+function renderAll(){ renderSteps(); renderCalories(); renderWeight(); showDaily(); }
